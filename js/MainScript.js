@@ -1,10 +1,60 @@
-class World{
+// import {BirdController} from "./BirdMovement";
+
+
+class ThirdPersonCamera{
+    constructor(params) {
+        this.params = params;
+        this.camera = params.camera;
+
+        this.currentPosition = new THREE.Vector3();
+        this.currentLookAt = new THREE.Vector3();
+    }
+
+    CalculateOffset(){
+        const idealOffset = new THREE.Vector3(-15,20,-30);
+        idealOffset.applyQuaternion(this.params.target.rotation);
+        idealOffset.add(this.params.target.position);
+        return idealOffset;
+    }
+    CalculateLookAt(){
+        const idealLookAt = new THREE.Vector3(0,10,50);
+        idealLookAt.applyQuaternion(this.params.target.rotation);
+        idealLookAt.add(this.params.target.position);
+        return idealLookAt;
+    }
+    Update(timeElapsed){
+        const idealOffset = this.CalculateOffset();
+        const idealLookAt = this.CalculateLookAt();
+
+        this.currentPosition.copy(idealOffset);
+        this.currentLookAt.copy(idealLookAt);
+
+        this.camera.position.copy(this.currentPosition);
+        this.camera.lookAt(this.currentLookAt);
+    }
+}
+
+class MainWorld{
 
     constructor() {
         this.Init();
     }
 
+
+
+
+    getBird(){
+        return this.Bird;
+    }
+    getBirdName(){
+        return this.Name;
+    }
+    SetBird(object){
+        this.Bird = object;
+    }
+
     Init(){
+        this.clock = new THREE.Clock();
         this.renderer = new THREE.WebGLRenderer({antialias: true});
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.Type = THREE.PCFSoftShadowMap;
@@ -24,6 +74,10 @@ class World{
         this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
         this.camera.position.set(0,2,-5);
 
+        // this.tps = new ThirdPersonCamera({
+        //     camera: this.camera,
+        // })
+
         this.scene = new THREE.Scene();
 
         this.keyboard = new THREEx.KeyboardState();
@@ -35,7 +89,6 @@ class World{
 
         this.RAF();
     }
-
     AddObjects(){
 
         //SPHERE
@@ -48,7 +101,7 @@ class World{
         this.scene.add(sphere);
 
         //FLOOR
-        let floorTexture = new THREE.ImageUtils.loadTexture('texture/floor.jpg');
+        let floorTexture = new THREE.ImageUtils.loadTexture('texture/carbon.png');
         floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
         floorTexture.repeat.set(10, 10);
         let geometryPlane = new THREE.PlaneGeometry(100, 100, 4, 4);
@@ -65,9 +118,23 @@ class World{
         this.scene.add(plane);
 
         //GLTF
-
         this.LoadModel('glb/eagle.gltf');
+
         // this.FBXloader();
+    }
+
+    LoadModel(path){
+        const loader = new THREE.GLTFLoader();
+        loader.load(path, (gltf) =>{
+            gltf.scene.traverse(c =>{
+                c.castShadow = true;
+            });
+            this.scene.add(gltf.scene);
+             this.SetBird(gltf.scene);
+             this.sideAngle = 0;
+             //console.log(this.getBird().toString())
+             this.getBird().add(this.camera);
+        });
     }
 
     AddLights(){
@@ -99,49 +166,63 @@ class World{
         this.Update();
     }
 
-    Update(){
+    Update(timeElapsed){
+        const timeElapsedS = timeElapsed * 0.001;
         this.KeyboardHandling();
         this.controls.update();
+
+        //this.tps.Update(timeElapsedS);
     }
 
     KeyboardHandling(){
-        const clock = new THREE.Clock();
-        const delta = clock.getDelta();
+        const delta = this.clock.getDelta();
         const moveDistance = 5 * delta;
         const rotateAngle = Math.PI / 2 * delta;
-
         if ( this.keyboard.pressed("S") ) {
-            this.eagle.translateZ(-moveDistance);
-            console.log('S');
+            this.getBird().translateZ(-moveDistance);
         }
-        if ( this.keyboard.pressed("W") )
-            car.translateZ( moveDistance );
-
-        if ( this.keyboard.pressed("E") )
-            car.translateX( -moveDistance );
-
-        if ( this.keyboard.pressed("Q") )
-            car.translateX(moveDistance);
-
-        const rotation_matrix = new THREE.Matrix4().identity();
-        if ( this.keyboard.pressed("A") ){
-            car.rotateOnAxis( new THREE.Vector3(0,2,0),rotateAngle);
+        if ( this.keyboard.pressed("W") ) {
+            this.getBird().translateZ(moveDistance);
+            if(this.sideAngle > 0){
+                this.getBird().position.x -= this.sideAngle/3000;
+            }
+            if(this.sideAngle < 0){
+                this.getBird().position.x -= this.sideAngle/3000;
+            }
         }
-        if ( this.keyboard.pressed("D") ){
-            car.rotateOnAxis( new THREE.Vector3(0,2,0),-rotateAngle);
-        }
-    }
+        if ( this.keyboard.pressed("D") ) {
+            if(this.getBird().rotation._z <= 0.85){
+                this.getBird().rotateOnAxis(new THREE.Vector3(0, 0, 2), rotateAngle);
+                this.sideAngle +=1;
+            }
+           // this.getBird().position.x -= moveDistance/8;
 
-    LoadModel(path){
-        const loader = new THREE.GLTFLoader();
-        loader.load(path, (gltf) =>{
-            gltf.scene.traverse(c =>{
-                c.castShadow = true;
-            });
-            this.scene.add(gltf.scene);
-            gltf.animations;
-            this.eagle = gltf.scene;
-        });
+        }
+        if ( this.keyboard.pressed("A") ) {
+            if(this.getBird().rotation._z >= -0.85){
+                this.sideAngle -=1;
+                this.getBird().rotateOnAxis(new THREE.Vector3(0, 0, 2), -rotateAngle);
+            }
+            //this.getBird().translateX(moveDistance);
+        }
+        if(this.keyboard.pressed("space")){
+            console.log(this.getBird().rotation._x);
+            if(this.getBird().rotation._x >= -0.55) {
+                this.getBird().rotateOnAxis(new THREE.Vector3(2, 0, 0), -rotateAngle);
+            }
+        }
+        if(this.keyboard.pressed("shift"))
+            if(this.getBird().rotation._x <= 0.55) {
+                this.getBird().rotateOnAxis(new THREE.Vector3(2, 0, 0), rotateAngle);
+            }
+        //const rotation_matrix = new THREE.Matrix4().identity();
+        if ( this.keyboard.pressed("Q") ){
+            this.getBird().rotateOnWorldAxis( new THREE.Vector3(0,2,0),rotateAngle/4);
+        }
+        if ( this.keyboard.pressed("E") ){
+            this.getBird().rotateOnWorldAxis( new THREE.Vector3(0,2,0),-rotateAngle/4);
+        }
+
     }
 
     // FBXloader(){
@@ -160,5 +241,5 @@ class World{
 let _APP = null;
 
 window.addEventListener('DOMContentLoaded', () => {
-    _APP = new World();
+    _APP = new MainWorld();
 });

@@ -1,4 +1,4 @@
-var camera, scene, renderer, controls, thirdPersonCam;
+var camera, scene, renderer, controls;
 var geometry, material, cube, cylinder, sphere, spotlight1, spotLightHelper1;
 
 //Doplnenie premennych pre Split kamier CV 11
