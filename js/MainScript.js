@@ -40,15 +40,19 @@ class MainWorld{
         this.Init();
     }
 
+    SetBirdBasicState(object){
+        this.birdAxis = {
+            x: object.rotation.x,
+            y: object.rotation.y,
+            z: object.rotation.z
+        }
 
-
+    }
 
     getBird(){
         return this.Bird;
     }
-    getBirdName(){
-        return this.Name;
-    }
+
     SetBird(object){
         this.Bird = object;
     }
@@ -73,10 +77,6 @@ class MainWorld{
         const far = 1000.0;
         this.camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
         this.camera.position.set(0,2,-5);
-
-        // this.tps = new ThirdPersonCamera({
-        //     camera: this.camera,
-        // })
 
         this.scene = new THREE.Scene();
 
@@ -118,22 +118,39 @@ class MainWorld{
         this.scene.add(plane);
 
         //GLTF
-        this.LoadModel('glb/eagle.gltf');
-
+        this.LoadBird('glb/eagle_animated.gltf');
         // this.FBXloader();
     }
 
-    LoadModel(path){
+    LoadBird(path){
         const loader = new THREE.GLTFLoader();
         loader.load(path, (gltf) =>{
             gltf.scene.traverse(c =>{
                 c.castShadow = true;
             });
-            this.scene.add(gltf.scene);
-             this.SetBird(gltf.scene);
-             this.sideAngle = 0;
-             //console.log(this.getBird().toString())
-             this.getBird().add(this.camera);
+
+            //gltf.scene.position.set(0,15,0);
+            this.SetBird(gltf.scene);
+
+            const box = new THREE.BoxHelper( this.getBird(), 0xffff00 );
+            this.getBird().add(box);
+
+            this.scene.add(this.getBird());
+            this.sideAngle = 0;
+            //console.log(this.getBird().toString())
+            this.getBird().add(this.camera);
+            this.mixer = new THREE.AnimationMixer(this.getBird());
+            const clips = gltf.animations;
+            const clip = THREE.AnimationClip.findByName(clips, 'BirdFly');
+            const action = this.mixer.clipAction(clip);
+            action.play();
+
+
+
+            const axesHelper = new THREE.AxesHelper( 5 );
+            this.getBird().add(axesHelper);
+
+            this.SetBirdBasicState(this.getBird());
         });
     }
 
@@ -168,74 +185,68 @@ class MainWorld{
 
     Update(timeElapsed){
         const timeElapsedS = timeElapsed * 0.001;
-        this.KeyboardHandling();
+        const delta = this.clock.getDelta();
+        this.mixer.update(delta);
+        this.KeyboardHandling(delta);
         this.controls.update();
 
         //this.tps.Update(timeElapsedS);
     }
 
-    KeyboardHandling(){
-        const delta = this.clock.getDelta();
+    KeyboardHandling(delta){
+        //const delta = this.clock.getDelta();
         const moveDistance = 5 * delta;
         const rotateAngle = Math.PI / 2 * delta;
-        if ( this.keyboard.pressed("S") ) {
-            this.getBird().translateZ(-moveDistance);
-        }
+        // if ( this.keyboard.pressed("S") ) {
+        //     this.getBird().translateZ(-moveDistance);
+        // }
         if ( this.keyboard.pressed("W") ) {
             this.getBird().translateZ(moveDistance);
             if(this.sideAngle > 0){
-                this.getBird().position.x -= this.sideAngle/3000;
+                this.getBird().translateX(this.sideAngle/2000);
             }
             if(this.sideAngle < 0){
-                this.getBird().position.x -= this.sideAngle/3000;
+                this.getBird().translateX(-this.sideAngle/2000);
             }
         }
         if ( this.keyboard.pressed("D") ) {
-            if(this.getBird().rotation._z <= 0.85){
-                this.getBird().rotateOnAxis(new THREE.Vector3(0, 0, 2), rotateAngle);
+            if(this.getBird().rotation.z <= Math.PI / 3){ // PRI OTOCENI SA NEOTOCI SSO
+                console.log(Math.abs(this.getBird().rotation.z - this.birdAxis.z));
+                this.getBird().rotateZ(rotateAngle);
+                //this.getBird().rotateOnAxis(new THREE.Vector3(0, 0, 2), rotateAngle);
                 this.sideAngle +=1;
             }
            // this.getBird().position.x -= moveDistance/8;
 
         }
         if ( this.keyboard.pressed("A") ) {
-            if(this.getBird().rotation._z >= -0.85){
+            if(this.getBird().rotation.z >= -(Math.PI / 3)){ // PRI OTOCENI SA NEOTOCI SSO
                 this.sideAngle -=1;
-                this.getBird().rotateOnAxis(new THREE.Vector3(0, 0, 2), -rotateAngle);
+                console.log(Math.abs(this.getBird().rotation.z - this.birdAxis.z));
+                this.getBird().rotateZ(-rotateAngle);
+                //this.getBird().rotateOnAxis(new THREE.Vector3(0, 0, 2), -rotateAngle);
             }
             //this.getBird().translateX(moveDistance);
         }
         if(this.keyboard.pressed("space")){
-            console.log(this.getBird().rotation._x);
-            if(this.getBird().rotation._x >= -0.55) {
+            console.log(this.getBird().x);
+            if(this.getBird().rotation._x >= -0.25) {
                 this.getBird().rotateOnAxis(new THREE.Vector3(2, 0, 0), -rotateAngle);
             }
         }
         if(this.keyboard.pressed("shift"))
-            if(this.getBird().rotation._x <= 0.55) {
+            if(this.getBird().rotation._x <= 0.25) {
                 this.getBird().rotateOnAxis(new THREE.Vector3(2, 0, 0), rotateAngle);
             }
         //const rotation_matrix = new THREE.Matrix4().identity();
         if ( this.keyboard.pressed("Q") ){
-            this.getBird().rotateOnWorldAxis( new THREE.Vector3(0,2,0),rotateAngle/4);
+             this.getBird().rotateOnAxis( new THREE.Vector3(0,2,0),rotateAngle/4);
         }
         if ( this.keyboard.pressed("E") ){
-            this.getBird().rotateOnWorldAxis( new THREE.Vector3(0,2,0),-rotateAngle/4);
+            // this.getBird().rotateOnAxis( new THREE.Vector3(0,2,0),-rotateAngle/4);
         }
 
     }
-
-    // FBXloader(){
-    //     const loader = new THREE.FBXLoader();
-    //     //loader.setPath('./glb/dove-bird-rigged/source/Dove/');
-    //     loader.load('./glb/dove-bird-rigged/source/Dove/Dove.FBX', (fbx)=>{
-    //         fbx.scale.setScalar(0.1);
-    //         fbx.traverse(c =>{
-    //             c.castShadow = true;
-    //         })
-    //         this.scene.add(fbx);
-    //     })
-    // }
 }
 
 let _APP = null;
