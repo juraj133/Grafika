@@ -119,9 +119,9 @@ class MainWorld{
         //this.scene.add(floor);
 
         //GLTF
-        this.LoadMuseum('gltf/final5.gltf');
+        this.LoadMuseum('assets/Museum.gltf');
 
-        this.LoadBird('gltf/eagle_animated.gltf');
+        this.LoadBird('assets/eagle_animated.gltf');
 
 
     }
@@ -186,7 +186,7 @@ class MainWorld{
         this.scene.add(pointLight);
 
         let lightHelper = new THREE.PointLightHelper(pointLight, 1);
-        this.scene.add(lightHelper);
+        //this.scene.add(lightHelper);
 
         //STATUES LIGHTS
         const pointLight2 = new THREE.PointLight( 0xFFFFFF, 1.5, 100 );
@@ -195,7 +195,7 @@ class MainWorld{
         this.scene.add(pointLight2);
 
         let lightHelper2 = new THREE.PointLightHelper(pointLight2, 1);
-        this.scene.add(lightHelper2);
+        //this.scene.add(lightHelper2);
 
         const pointLight2_1 = new THREE.PointLight( 0xFFFFFF, 1.5, 100 );
         pointLight2_1.position.set( 28, 12, 20);
@@ -203,7 +203,7 @@ class MainWorld{
         this.scene.add(pointLight2_1);
 
         let pointLightHelper2_1 = new THREE.PointLightHelper(pointLight2_1, 1);
-        this.scene.add(pointLightHelper2_1);
+        //this.scene.add(pointLightHelper2_1);
 
         const pointLight2_2 = new THREE.PointLight( 0xFFFFFF, 1.5, 100 );
         pointLight2_2.position.set( -28, 12, 20);
@@ -211,7 +211,7 @@ class MainWorld{
         this.scene.add(pointLight2_2);
 
         let pointLightHelper2_2 = new THREE.PointLightHelper(pointLight2_2, 1);
-        this.scene.add(pointLightHelper2_2);
+        //this.scene.add(pointLightHelper2_2);
 
         //PAINTS LIGHTS
         const pointLight3 = new THREE.PointLight( 0xFFFFFF, 2, 100 );
@@ -220,7 +220,7 @@ class MainWorld{
         this.scene.add(pointLight3);
 
         let lightHelper3 = new THREE.PointLightHelper(pointLight3, 1);
-        this.scene.add(lightHelper3);
+        //this.scene.add(lightHelper3);
 
         const pointLight3_1 = new THREE.PointLight( 0xFFFFFF, 1.5, 100 );
         pointLight3_1.position.set( 28, 12, -20);
@@ -228,7 +228,7 @@ class MainWorld{
         this.scene.add(pointLight3_1);
 
         let pointLightHelper3_1 = new THREE.PointLightHelper(pointLight3_1, 1);
-        this.scene.add(pointLightHelper3_1);
+        //this.scene.add(pointLightHelper3_1);
 
         const pointLight3_2 = new THREE.PointLight( 0xFFFFFF, 1.5, 100 );
         pointLight3_2.position.set( -28, 12, -20);
@@ -236,7 +236,7 @@ class MainWorld{
         this.scene.add(pointLight3_2);
 
         let pointLightHelper3_2 = new THREE.PointLightHelper(pointLight3_2, 1);
-        this.scene.add(pointLightHelper3_2);
+        //this.scene.add(pointLightHelper3_2);
 
 
         let ambientLight = new THREE.AmbientLight(0x454545);

@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "cannon": "github:schteppe/cannon.js",
-    "cannon-es": "^0.20.0"
-  }
-}
